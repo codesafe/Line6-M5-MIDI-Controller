@@ -1,0 +1,33 @@
+
+Adafruit 액세서리 Breadboard Friendly MIDI Jack 5-pin DIN
+http://m.eleparts.co.kr/goods/view?no=25524 <--------------
+http://m.eleparts.co.kr/goods/catalog?code=000400190007
+
+
+[FAIRCHILD] 6N138
+http://www.devicemart.co.kr/goods/view?no=6305
+
+
+Arduino NANO 아두이노 나노 호환보드 
+http://www.devicemart.co.kr/goods/view?no=1342039
+
+
+Stech 미디케이블 (5핀 DIN) 3M
+http://www.devicemart.co.kr/goods/view?no=10934500
+http://www.devicemart.co.kr/goods/view?no=10934499
+
+
+
+0.91 인치 OLED 디스플레이 모듈 화이트
+http://www.devicemart.co.kr/goods/view?no=1384753]
+
+
+지지대 / 나사 / 육각 너트 (3종세트)
+
+3p DIN
+
+
+https://learn.sparkfun.com/tutorials/midi-tutorial/hardware--electronic-implementation
+
+
+

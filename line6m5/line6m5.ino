@@ -23,15 +23,25 @@ MIDI_CREATE_INSTANCE(HardwareSerial, Serial, midiOut);
 #define SEL2_PORT   4
 #define SEL3_PORT   5
 
+/*
+#define LED2_PORT   9
+#define LED3_PORT   10
 #define LED1_PORT   8
+*/
+
+// 배선 잘못 -_-
+#define LED1_PORT   9
+#define LED2_PORT   10
+#define LED3_PORT   8
     
 #define LAST_ALLPRESET_ADDR     100
 #define LAST_BANK_ADDR          10
 #define LAST_PRESET_ADDR        20
 
-#define MAX_BANK           8  // 3 * 8 = 24
+//#define MAX_BANK           8  // 3 * 8 = 24
+#define MAX_BANK           3  // 3개만 있어도 될듯
 #define MAX_CHANNEL        3
-
+/*
 int Presets[MAX_BANK][MAX_CHANNEL] = { 
   {1,2,3}, 
   {4,5,6},
@@ -41,9 +51,15 @@ int Presets[MAX_BANK][MAX_CHANNEL] = {
   {16,17,18},
   {19,20,21},
   {22,23,24}};
+*/
+
+int Presets[MAX_BANK][MAX_CHANNEL] = { 
+  {1,2,3}, 
+  {4,5,6},
+  {7,8,9}};
 
 int lastBank = 0;
-int lastPresetPos[MAX_BANK] = { 0, 0, 0, 0, 0 };   // 각 bank별 마지막 preset
+int lastPresetPos[MAX_BANK] = { 0, 0, 0 };   // 각 bank별 마지막 preset
 
 
 const uint8_t PROGMEM Line6_Logo128 [] = {
@@ -79,19 +95,62 @@ const uint8_t PROGMEM Line6_Logo128 [] = {
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
+const uint8_t PROGMEM str1 [] = {
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x38, 0x00, 0x78, 0x01, 0xF8, 0x07, 0xF8, 0x1F, 0xF8,
+0x1F, 0xF8, 0x1F, 0xF8, 0x03, 0xF8, 0x01, 0xF8, 0x01, 0xF8, 0x01, 0xF8, 0x01, 0xF8, 0x01, 0xF8,
+0x01, 0xF8, 0x01, 0xF8, 0x01, 0xF8, 0x01, 0xF8, 0x01, 0xF8, 0x01, 0xF8, 0x01, 0xF8, 0x01, 0xF8,
+0x01, 0xF8, 0x01, 0xF8, 0x01, 0xF8, 0x01, 0xF8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+const uint8_t PROGMEM str2 [] = {
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0xE0, 0x0F, 0xF8, 0x1F, 0xFC, 0x1F, 0xFC, 0x3E, 0x7E,
+0x3E, 0x7E, 0x3E, 0x7E, 0x3E, 0x7E, 0x3E, 0x7E, 0x00, 0xFE, 0x00, 0xFC, 0x01, 0xFC, 0x01, 0xF8,
+0x01, 0xF8, 0x03, 0xF8, 0x03, 0xF0, 0x07, 0xF0, 0x07, 0xE0, 0x0F, 0xC0, 0x0F, 0xC0, 0x1F, 0x80,
+0x1F, 0xFC, 0x3F, 0xFC, 0x3F, 0xFC, 0x3F, 0xFC, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+
+const uint8_t PROGMEM  str3 [] = {
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0xF0, 0x3F, 0xF8, 0x7F, 0xFC, 0x7F, 0xFE, 0x7E, 0x7E,
+0x7E, 0x7E, 0x7E, 0x7E, 0x00, 0x7E, 0x00, 0x7E, 0x03, 0xFC, 0x03, 0xF0, 0x03, 0xFC, 0x03, 0xFE,
+0x00, 0xFE, 0x00, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E,
+0x7F, 0xFC, 0x3F, 0xFC, 0x1F, 0xF8, 0x07, 0xE0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+const uint8_t PROGMEM bankstr [] = {
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0xF8, 0x00, 0x00, 0x00, 0x00, 0x3C, 0x00,
+0x3F, 0xF8, 0x00, 0x00, 0x00, 0x00, 0x3C, 0x00, 0x3F, 0xFC, 0x00, 0x00, 0x00, 0x00, 0x3C, 0x00,
+0x3F, 0xFE, 0x00, 0x00, 0x00, 0x00, 0x3C, 0x00, 0x3E, 0x3E, 0x01, 0xF0, 0x3C, 0x78, 0x3C, 0x3C,
+0x3E, 0x1E, 0x07, 0xF8, 0x3C, 0xFC, 0x3C, 0x38, 0x3E, 0x1E, 0x0F, 0xFC, 0x3F, 0xFE, 0x3C, 0x78,
+0x3E, 0x1E, 0x1F, 0xFE, 0x3F, 0xFE, 0x3C, 0x70, 0x3E, 0x1E, 0x1E, 0x3E, 0x3C, 0x3E, 0x3C, 0xF0,
+0x3E, 0x1E, 0x1E, 0x3E, 0x3C, 0x3E, 0x3C, 0xE0, 0x3F, 0xFC, 0x1E, 0x3E, 0x3C, 0x3E, 0x3F, 0xE0,
+0x3F, 0xF8, 0x1E, 0x3E, 0x3C, 0x3E, 0x3F, 0xC0, 0x3F, 0xFC, 0x00, 0x7E, 0x3C, 0x3E, 0x3F, 0xC0,
+0x3F, 0xFC, 0x01, 0xFE, 0x3C, 0x3E, 0x3F, 0xC0, 0x3E, 0x1E, 0x07, 0xFE, 0x3C, 0x3E, 0x3F, 0xE0,
+0x3E, 0x1E, 0x0F, 0xBE, 0x3C, 0x3E, 0x3F, 0xE0, 0x3E, 0x1E, 0x1E, 0x3E, 0x3C, 0x3E, 0x3C, 0xE0,
+0x3E, 0x1E, 0x1E, 0x3E, 0x3C, 0x3E, 0x3C, 0xF0, 0x3E, 0x1E, 0x1E, 0x3E, 0x3C, 0x3E, 0x3C, 0xF0,
+0x3E, 0x1E, 0x1E, 0x3E, 0x3C, 0x3E, 0x3C, 0x70, 0x3E, 0x1E, 0x1E, 0x3E, 0x3C, 0x3E, 0x3C, 0x78,
+0x3F, 0xFE, 0x1F, 0xFE, 0x3C, 0x3E, 0x3C, 0x78, 0x3F, 0xFE, 0x1F, 0xFE, 0x3C, 0x3E, 0x3C, 0x38,
+0x3F, 0xFC, 0x0F, 0xBE, 0x3C, 0x3E, 0x3C, 0x3C, 0x3F, 0xF8, 0x07, 0x3E, 0x3C, 0x3E, 0x3C, 0x3C,
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
 
 ////////////////////////////////////////////////////////////////////////
 
-#define KEY_STATE_NONE      0
-#define KEY_STATE_PRESS     1
-#define KEY_STATE_RELEASE   2
+#define KEY_STATE_NONE        0
+#define KEY_STATE_PRESS       1
+#define KEY_STATE_LONGPRESS     2
+#define KEY_STATE_RELEASE     3
+
 // channel + bank
 int btnState[MAX_CHANNEL+1] = { KEY_STATE_NONE,KEY_STATE_NONE,KEY_STATE_NONE,KEY_STATE_NONE };
 unsigned long pressTime[MAX_CHANNEL+1] = { 0,0,0,0 };
 
 int infotype = 0;
 unsigned long infoTimer = 0;
-
+bool fxonoff = true;
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -165,19 +224,55 @@ void drawLine6Logo(void)
 {
   display.clearDisplay();
   display.drawBitmap( 0, 1, Line6_Logo128, 128, 30, 1);
+  // brightness
+  //display.ssd1306_command(SSD1306_SETCONTRAST); //0x81
+  //display.ssd1306_command(0x8F);
+  
   display.display();
-  delay(3000);
+//  delay(3000);
+  
+  // led test
+  digitalWrite(LED1_PORT, LOW);  
+  digitalWrite(LED2_PORT, LOW);  
+  digitalWrite(LED3_PORT, LOW);  
+
+  for(int i=0; i<5; i++)
+  {
+    digitalWrite(LED1_PORT, HIGH);
+    delay(150);
+    digitalWrite(LED2_PORT, HIGH);
+    delay(150);
+    digitalWrite(LED3_PORT, HIGH);
+    delay(150);
+    digitalWrite(LED1_PORT, LOW);  
+    digitalWrite(LED2_PORT, LOW);  
+    digitalWrite(LED3_PORT, LOW);      
+    delay(150);
+  }
+
 }
 
 
 void fxOn() 
 {
   midiOut.sendControlChange(11, 88, MIDICHAN); 
+  fxonoff = true;
+  Serial.print("FX ON\n");
 }
 
 void fxOff() 
 {
   midiOut.sendControlChange(11, 10, MIDICHAN); 
+  fxonoff = false;
+  Serial.print("FX OFF\n");
+}
+
+void toggleFxOnOff()
+{
+  if(fxonoff == false)
+    fxOn();
+  else
+    fxOff();
 }
 
 void drawText(char *str) 
@@ -212,17 +307,33 @@ void UpdateDisplay1()
   int m5Preset = Presets[lastBank][pos];
   
   display.clearDisplay();
-  display.setTextColor(SSD1306_WHITE);
-  display.setTextSize(2);  
-  display.setCursor(0,0);
-  sprintf(buffer , "B:%d C:%d", lastBank, pos);
-  display.print(buffer); 
+  //display.setTextColor(SSD1306_WHITE);
+  display.invertDisplay(false);
+  
+	display.drawBitmap( 10, 0, bankstr, 64, 32, 1);
 
+	if(lastBank == 0)
+		display.drawBitmap( 79, 0, str1, 16, 32, 1);
+	if(lastBank == 1)
+		display.drawBitmap( 79, 0, str2, 16, 32, 1);
+	if(lastBank == 2)
+		display.drawBitmap( 79, 0, str3, 16, 32, 1);
+
+  /*
+  display.setTextSize(3);
+  display.setCursor(0,8);
+  //sprintf(buffer , "B:%d C:%d", lastBank, pos);
+  sprintf(buffer , "Bank %d",lastBank);
+  display.print(buffer); 
+  */
+  
+/*
   char buffer2[20];
   display.setTextSize(2);
-  display.setCursor(0,18);
+  display.setCursor(0,24);
   sprintf(buffer2 , "Preset:%02d", m5Preset);
   display.print(buffer2); 
+  */
   
   display.display();  
 }
@@ -235,6 +346,8 @@ void UpdateDisplay2()
   
   display.clearDisplay();
   display.setTextColor(SSD1306_WHITE);
+  display.invertDisplay(false);
+  /*
   display.setTextSize(2);
   display.setCursor(0,10);
   sprintf(buffer, "%d", lastBank);
@@ -253,17 +366,62 @@ void UpdateDisplay2()
   display.setCursor(64,0);
   sprintf(buffer2 , "%02d", m5Preset);
   display.print(buffer2); 
+  */
+  
+	char buffer2[20];
+  display.setTextSize(4);
+  display.setCursor(0,0);
+  sprintf(buffer2 , "[%d] %d", lastBank+1, pos+1);
+  display.print(buffer2); 
   
   display.display();  
 }
 
+unsigned long flashtick = 0;
+bool invertscreen = false;
 
-void SetM5Preset(int m5Preset)
+void UpdateDisplayOffFX()
+{
+	unsigned long ct = millis();
+	char buffer[20];
+	int pos = lastPresetPos[lastBank];
+	int m5Preset = Presets[lastBank][pos];
+
+	if( flashtick + 700 < ct )
+	{
+		flashtick = ct;	
+		invertscreen = !invertscreen;
+	}
+	
+    if( pos == 0)
+	  digitalWrite(LED1_PORT, invertscreen == true ? HIGH : LOW);	
+    if( pos == 1)
+	  digitalWrite(LED2_PORT, invertscreen == true ? HIGH : LOW);	
+    if( pos == 2)
+	  digitalWrite(LED3_PORT, invertscreen == true ? HIGH : LOW);	
+
+
+	display.clearDisplay();
+	display.setTextColor(SSD1306_WHITE);
+	display.invertDisplay(invertscreen);
+
+	char buffer2[20];
+	display.setTextSize(3);
+	display.setCursor(8,5);
+	sprintf(buffer2 , "OFF FX");
+	display.print(buffer2); 
+
+	display.display();  
+
+}
+
+void SetM5Preset(int m5Preset, bool updatedisplay = true)
 {
   midiOut.sendProgramChange(m5Preset-1, MIDICHAN);
   fxOn();
   //UpdateDisplay2();
-  UpdateDisplay();
+  if(updatedisplay == true)
+	UpdateDisplay();
   WriteLastPresetPos();
 }
 
@@ -283,12 +441,28 @@ void PressBank()
  
  void PressChannel(int i)
 {
-  if(lastPresetPos[lastBank] == i || i > MAX_CHANNEL) return;
+	if(lastPresetPos[lastBank] == i) 
+	{
+		toggleFxOnOff();
+		return;
+	}
+	
+	
+  if(/*lastPresetPos[lastBank] == i ||*/ i >= MAX_CHANNEL) return;
   lastPresetPos[lastBank] = i;
 
   //int pos = lastPresetPos[lastBank];
   int m5Preset = Presets[lastBank][i];
 
+  SetM5Preset(m5Preset, false);
+  infotype = 1;
+}
+
+// 마지막 위치로 M5 이동
+void SetM5Init()
+{
+  int pos = lastPresetPos[lastBank];
+  int m5Preset = Presets[lastBank][pos];
   SetM5Preset(m5Preset);
 }
 
@@ -301,16 +475,16 @@ void drawLogoTitle()
   display.print("LINE6 M5  ");
   display.setTextSize(1);
   display.setCursor(0,18);  
-  display.print("Midi Controller v1.0");
+  display.print("Midi Controller v1.4");
   display.display();
-  delay(3000);
+  delay(2000);
 }
 
 void setup() 
 {
   // Must set to Line6 Midi !
   Serial.begin(31250);
-  //Serial.begin(115200);
+  //Serial.begin(9600);
     
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) 
   { // Address 0x3C for 128x32
@@ -318,11 +492,22 @@ void setup()
     for(;;);
   }
 
+  pinMode(BANK_PORT, INPUT_PULLUP);
+  pinMode(SEL1_PORT, INPUT_PULLUP);
+  pinMode(SEL2_PORT, INPUT_PULLUP);
+  pinMode(SEL3_PORT, INPUT_PULLUP);
+
+  pinMode(LED1_PORT, OUTPUT);
+  pinMode(LED2_PORT, OUTPUT);
+  pinMode(LED3_PORT, OUTPUT);
+
   drawLine6Logo();
 
   drawLogoTitle();
   ReadLastBank();
   ReadLastPresetPos();
+
+  SetM5Init();
  
   UpdateDisplay();
   
@@ -330,13 +515,6 @@ void setup()
   //SetM5Preset(6);
   //fxOn();
   
-  pinMode(BANK_PORT, INPUT_PULLUP);
-  pinMode(SEL1_PORT, INPUT_PULLUP);
-  pinMode(SEL2_PORT, INPUT_PULLUP);
-//pinMode(SEL3_PORT, INPUT);
-
-  pinMode(LED1_PORT, OUTPUT);
-
   //attachInterrupt(digitalPinToInterrupt(BANK_PORT), switchFn, FALLING);
   
 }
@@ -351,7 +529,7 @@ void switchFn()
 }
 
 unsigned long debounceDelay = 200; // ms
-
+unsigned long longpresstime = 400;
 
 bool checkPress(int btn)
 {
@@ -364,7 +542,7 @@ bool checkPress(int btn)
       if( btnState[p] == KEY_STATE_NONE && pressTime[p] + debounceDelay < ct )
       {
         btnState[p] = KEY_STATE_PRESS;
-        Serial.print(F("pushed\n"));
+        //Serial.print(F("check low\n"));
         pressTime[p] = ct;
         
         return true;
@@ -376,37 +554,119 @@ bool checkPress(int btn)
       {
         btnState[p] = KEY_STATE_NONE;
         pressTime[p] = ct;        
+    //Serial.print(F("check high\n"));
       }
     }
     return false;
 }
 
+unsigned long last_ct = 0;
+
+// Short press --> on/off fx : long press ---> bank change
+void checkOnOfforBank()
+{
+    int state = digitalRead(BANK_PORT);
+    unsigned long ct = millis();
+
+    if( last_ct + 50 > ct)
+      return;
+
+      last_ct = ct;
+
+    // on 
+    if( state == LOW )
+    {
+        if( btnState[0] == KEY_STATE_PRESS && pressTime[0] + longpresstime <= ct )
+        {
+          btnState[0] = KEY_STATE_LONGPRESS;      
+          PressBank();
+          //Serial.print(F("Long Pressed !\n"));          
+          pressTime[0] = ct;
+          infotype = 0;    
+        }
+        else
+        {
+          if( btnState[0] == KEY_STATE_NONE)
+          {
+            btnState[0] = KEY_STATE_PRESS;
+            pressTime[0] = ct;
+          }
+        } 
+        //Serial.print(F("check low\n"));
+    }
+    else if( state == HIGH )
+    {
+        if( btnState[0] == KEY_STATE_PRESS)
+        {
+            toggleFxOnOff();
+            infotype = 0;    
+            infoTimer = 0;
+        }
+        btnState[0] = KEY_STATE_NONE;
+        //Serial.print(F("check high\n"));
+    }
+}
+
 void OnOffLed()
 {
     int pos = lastPresetPos[lastBank];
-    digitalWrite(LED1_PORT, LED1_PORT+pos-LED1_PORT == 0 ? HIGH: LOW);
+	digitalWrite(LED1_PORT, LOW);
+    digitalWrite(LED2_PORT, LOW);
+    digitalWrite(LED3_PORT, LOW);
+
+    if( pos == 0 )
+    {
+      digitalWrite(LED1_PORT, HIGH);      
+    }
+    if( pos == 1 )
+    {
+      digitalWrite(LED2_PORT, HIGH);      
+    }
+    if( pos == 2 )
+    {
+      digitalWrite(LED3_PORT, HIGH);      
+    }
+    //digitalWrite(LED1_PORT, LED1_PORT+pos-LED1_PORT == 0 ? HIGH: LOW);
 }
+
 
 void loop()
 {
     if(checkPress(BANK_PORT) == true)
       PressBank();    
+
+    //checkOnOfforBank();
+ 
     if(checkPress(SEL1_PORT) == true)
       PressChannel(0);
     if(checkPress(SEL2_PORT) == true)
       PressChannel(1);
-//    if(checkPress(SEL3_PORT) == true)
-//      PressChannel(2);      
+    if(checkPress(SEL3_PORT) == true)
+      PressChannel(2);      
 
     OnOffLed();
 
-    if(infotype == 0)
+    if( fxonoff == false )
     {
-      unsigned long ct = millis();
-      if( infoTimer + 4000 < ct )
-      {
-        UpdateDisplay2();
-        infotype = 1;
-      }
+      UpdateDisplayOffFX();
     }
+    else
+    {
+
+      if(infotype == 0)
+      {
+        unsigned long ct = millis();
+        if( infoTimer + 2000 < ct )
+        {
+          UpdateDisplay2();
+          infotype = 1;
+        }
+      }
+	  else
+	  {
+		  UpdateDisplay2();
+	  }
+  }
+
+
 }
